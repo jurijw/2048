@@ -1,3 +1,6 @@
+from random import choice, choices
+
+
 class Board:
     WIDTH: int = 4
     HEIGHT: int = 4
@@ -7,6 +10,9 @@ class Board:
 
     def __init__(self, grid=None) -> None:
         self._grid = grid if grid != None else self.make_grid()
+        if grid == None:
+            for _ in range(2):
+                self.add_random_tile()
 
     @classmethod
     def make_grid(cls):
@@ -14,9 +20,18 @@ class Board:
         return grid
 
     def add_random_tile(self):
-        free_indices = [index for index in range(self.SIZE) if self._grid[index] == 0]
-        # Choose a random index
-        return
+        empty_indices = self.filter_indices(self._grid) 
+        # Choose a random empty index
+        index = choice(empty_indices)
+        # Choose whether to place a two or a four 
+        val = choices([2, 4], weights=[self.PROBABILITY_TWO, self.PROBABILITY_FOUR], k=1)[0]
+        # Add the tile
+        self.set_index(index, val)
+
+    @staticmethod
+    def filter_indices(arr, target=0):
+        """Returns a list of all indices where the list ARR equals TARGET, which defaults to 0."""
+        return [index for index, val in enumerate(arr) if val == target]
 
     @property
     def points(self):
@@ -31,6 +46,12 @@ class Board:
 
     def set_at(self, row, col, val):
         self._grid[self.linear_index(row, col)] = val
+
+    def get_index(self, index):
+        return self._grid[index]
+
+    def set_index(self, index, val):
+        self._grid[index] = val 
 
 
     @property
