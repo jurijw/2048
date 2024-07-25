@@ -44,50 +44,61 @@ class Board:
         pass
 
     @staticmethod
-    def collapse_non_destructive(lst):
-        start = 0
+    def collapse_destructive(lst):
+        p1, p2 = 0, 1
         write = 0
-        output = [0 for _ in range(len(lst))]
-        while start < len(lst):
-            if start == len(lst) - 1:
-                output[write] = lst[start]
-                start += 1
-            elif lst[start] == 0:
-                start += 1
-            elif lst[start] == lst[start + 1]:
-                output[write] = lst[start] + lst[start + 1]
-                start += 2
+        while p2 <= len(lst):
+            if lst[p1] == 0:
+                p1 += 1
+                p2 += 1
+            elif p2 == len(lst):
+                lst[write] = lst[p1]
+                # p1 += 1
+                p2 += 1
                 write += 1
+            elif lst[p2] == 0:
+                p2 += 1
+            elif lst[p1] == lst[p2]:
+                lst[write] = lst[p1] + lst[p2]
+                write += 1
+                p1 = p2 + 1
+                p2 = p1 + 1
             else:
-                output[write] = lst[start]
-                start += 1
+                lst[write] = lst[p1]
                 write += 1
-        return output
+                p1 = p2
+                p2 = p1 + 1
+        for i in range(write, len(lst)):
+            lst[i] = 0
 
     @staticmethod
-    def collapse_destructive(lst):
-        start = 0
+    def collapse_non_destructive(lst):
+        """Take an input list LST and 'collapse' it to the left. This merges pairs of non-zero integers, ignoring all zero entries."""
+        output = [0 for _ in range(len(lst))]
+        p1, p2 = 0, 1
         write = 0
-        while start < len(lst):
-            if start == len(lst) - 1:
-                lst[write] = lst[start]
-                start += 1
-                write += 1 # check
-            elif lst[start] == 0:
-                start += 1
-            elif lst[start] == lst[start + 1]:
-                lst[write] = lst[start] + lst[start + 1]
-                start += 2
+        while p2 <= len(lst):
+            if lst[p1] == 0:
+                p1 += 1
+                p2 += 1
+            elif p2 == len(lst):
+                output[write] = lst[p1]
+                # p1 += 1
+                p2 += 1
+                # write += 1 -> may need in non-destructive method
+            elif lst[p2] == 0:
+                p2 += 1
+            elif lst[p1] == lst[p2]:
+                output[write] = lst[p1] + lst[p2]
                 write += 1
+                p1 = p2 + 1
+                p2 = p1 + 1
             else:
-                lst[write] = lst[start]
-                start += 1
+                output[write] = lst[p1]
                 write += 1
-
-        # Overwrite remaining 
-        for i in range(write, len(lst)): # len(lst) should be start at this point
-            lst[i] = 0
-    
+                p1 = p2
+                p2 = p1 + 1
+        return output
 
     @property
     def points(self):
