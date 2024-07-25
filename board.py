@@ -45,6 +45,17 @@ class Board:
 
     @staticmethod
     def collapse_destructive(lst):
+        """Take an input list LST and 'collapse' it to the left in place,
+        mutating the original list. This merges consecutive non-overlapping
+        pairs (grouped to the left) of non-zero integers. The sum of the pairs
+        is written to the input list such that it overwrites the first value
+        of the pair. Non-paired, non-zero integers are shifted left to the 
+        first index where no overwrite has occured. After mutating the input
+        list, the number of points gained by the collapse are returned, which
+        equal the sum of all merged list entries (tiles in 2048).
+        This algorithm has O(n) time & space complexity, requiring only one
+        pass through the list."""
+        points = 0
         p1, p2 = 0, 1
         write = 0
         while p2 <= len(lst):
@@ -59,6 +70,7 @@ class Board:
             elif lst[p2] == 0:
                 p2 += 1
             elif lst[p1] == lst[p2]:
+                points += lst[p1] + lst[p2]
                 lst[write] = lst[p1] + lst[p2]
                 write += 1
                 p1 = p2 + 1
@@ -70,11 +82,13 @@ class Board:
                 p2 = p1 + 1
         for i in range(write, len(lst)):
             lst[i] = 0
+        return points
 
     @staticmethod
-    def collapse_non_destructive(lst):
-        """Take an input list LST and 'collapse' it to the left. This merges pairs of non-zero integers, ignoring all zero entries."""
+    def collapse_non_destructive(lst: list[int]) -> tuple[int, list[int]]:
+        """Non-destructive version of #collapse_destructive."""
         output = [0 for _ in range(len(lst))]
+        points = 0
         p1, p2 = 0, 1
         write = 0
         while p2 <= len(lst):
@@ -89,6 +103,7 @@ class Board:
             elif lst[p2] == 0:
                 p2 += 1
             elif lst[p1] == lst[p2]:
+                points += lst[p1] + lst[p2]
                 output[write] = lst[p1] + lst[p2]
                 write += 1
                 p1 = p2 + 1
@@ -98,7 +113,7 @@ class Board:
                 write += 1
                 p1 = p2
                 p2 = p1 + 1
-        return output
+        return points, output
 
     @property
     def points(self):
