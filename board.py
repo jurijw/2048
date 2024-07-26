@@ -81,18 +81,12 @@ class Board:
             def get(ptr: int):
                 return self.get_index(index_lst[ptr])
 
-            found_zero = False
-            found_non_zero = False
             for i in range(len(index_lst) - 1):
                 v1, v2 = get(i), get(i + 1)
+                if v1 == 0 and v2 != 0:
+                    return True
                 if v1 != 0 and v1 == v2:
                     return True
-                if v1 == 0 or v2 == 0:
-                    found_zero = True
-                if v1 != 0 or v2 != 0:
-                    found_non_zero = True
-            if found_zero and found_non_zero:
-                return True
         return False
 
     @property
@@ -252,7 +246,7 @@ class Board:
         return [row[::-1] for row in cls.left_indices()]
 
     @classmethod
-    def down_indices(cls):
+    def up_indices(cls):
         indices = []
         for col in range(cls.WIDTH):
             col_indices = []
@@ -262,8 +256,8 @@ class Board:
         return indices
 
     @classmethod
-    def up_indices(cls):
-        return [col[::-1] for col in cls.down_indices()]
+    def down_indices(cls):
+        return [col[::-1] for col in cls.up_indices()]
 
     @property
     def game_over(self):
@@ -314,6 +308,9 @@ class Board:
                 board_str += " " * padding + symbol + " "
             board_str += "\n"
         return board_str
+
+    def __repr__(self) -> str:
+        return f"<{__class__.__name__}()>"
 
 
 class GridIndex(NamedTuple):
