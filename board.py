@@ -53,6 +53,8 @@ class Board:
 
     def make_move(self, move: Move):
         # FIXME: only allow the move to be made if it changes the board
+        if move not in self.legal_moves:
+            raise Exception("Attempting to make an illegal move.")
         for index_lst in self.get_index_lists_by_move(move):
             self._points += self.collapse_by_index_list(index_lst)
         self.add_random_tile()
@@ -76,6 +78,34 @@ class Board:
             if v1 != 0 or v2 != 0:
                 found_non_zero = True
         return found_zero and found_non_zero
+
+    def iscollapsible(self, move: Move) -> bool:
+        for index_lst in self.get_index_lists_by_move(move):
+
+            def get(ptr: int):
+                return self.get_index(index_lst[ptr])
+
+            found_zero = False
+            found_non_zero = False
+            for i in range(len(index_lst) - 1):
+                v1, v2 = get(i), get(i + 1)
+                if v1 != 0 and v1 == v2:
+                    return True
+                if v1 == 0 or v2 == 0:
+                    found_zero = True
+                if v1 != 0 or v2 != 0:
+                    found_non_zero = True
+            if found_zero and found_non_zero:
+                return True
+        return False
+
+    @property
+    def legal_moves(self):
+        legal = []
+        for move in Move:
+            if self.iscollapsible(move):
+                legal.append(move)
+        return legal
 
     def extract(self, axis: int, move: Move) -> list[int]:
         """Extract a list from my grid corresponding to a move direction. The axis specifies
@@ -241,8 +271,7 @@ class Board:
 
     @property
     def game_over(self):
-        # TODO:
-        return False
+        return len(self.legal_moves) == 0
 
     @property
     def points(self):
