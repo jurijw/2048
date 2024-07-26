@@ -86,12 +86,14 @@ def test_collabsible():
         [2, 2, 2, 2],
         [4, 2, 4, 2],
         [2, 4, 8, 16],
+        [16, 8, 4, 0],
     ]
     expected = [
         False,
         True,
         True,
         True,
+        False,
         False,
         False,
     ]

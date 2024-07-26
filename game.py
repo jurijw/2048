@@ -12,8 +12,10 @@ class Game:
             print(self._board)
             user_input = input("Enter a move (hjkl) ").strip().lower()
             parsed_move = self.parse_move(user_input)
-            if parsed_move is not None:
+            if parsed_move is not None and parsed_move in self.legal_moves:
                 self.make_move(parsed_move)
+            else:
+                print("Incorrect entry.")
 
     @staticmethod
     def parse_move(user_input):
@@ -31,6 +33,10 @@ class Game:
 
     def make_move(self, move: Move):
         self._board.make_move(move)
+
+    @property
+    def legal_moves(self):
+        return self._board.legal_moves
 
     def __str__(self) -> str:
         return str(self._board)
