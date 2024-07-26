@@ -1,7 +1,6 @@
 from typing import NamedTuple
 from move import Move
 from random import choice, choices
-import math
 
 
 class Board:
@@ -23,9 +22,8 @@ class Board:
 
     @classmethod
     def make_grid(cls):
-        """Create an empty grid."""
-        grid = [0 for _ in range(cls.SIZE)]
-        return grid
+        """Create and return an empty grid."""
+        return [0 for _ in range(cls.SIZE)]
 
     @staticmethod
     def filter_indices(arr, target=0):
@@ -44,11 +42,62 @@ class Board:
         # Add the tile
         self.set_index(index, val)
 
-    def make_move(self, move: Move):
-        pass
+    def get_index_lists_by_move(self, move: Move):
+        if move is Move.LEFT:
+            return self.left_indices()
+        if move is Move.UP:
+            return self.up_indices()
+        if move is Move.RIGHT:
+            return self.right_indices()
+        if move is Move.DOWN:
+            return self.down_indices()
 
-    def collapse(self, move: Move):
-        pass
+    def make_move(self, move: Move):
+        for index_lst in self.get_index_lists_by_move(move):
+            self._points += self.collapse_by_index_list(index_lst)
+        self.add_random_tile()
+
+    def get_by_index_seq(self, ptr, index_seq):
+        return self.get_index(index_seq[ptr])
+
+    def set_by_index_seq(self, ptr, val, index_seq):
+        self.set_index(index_seq[ptr], val)
+
+    def collapse_by_index_list(self, index_seq):
+        def get(ptr):
+            return self.get_by_index_seq(ptr, index_seq)
+
+        def set_(ptr, val):
+            return self.set_by_index_seq(ptr, val, index_seq)
+
+        points = 0
+        p1, p2 = 0, 1
+        write = 0
+        while p2 <= len(index_seq):
+            if get(p1) == 0:
+                p1 += 1
+                p2 += 1
+            elif p2 == len(index_seq):
+                set_(write, get(p1))
+                # p1 += 1
+                p2 += 1
+                write += 1
+            elif get(p2) == 0:
+                p2 += 1
+            elif get(p1) == get(p2):
+                points += get(p1) + get(p2)
+                set_(write, get(p1) + get(p2))
+                write += 1
+                p1 = p2 + 1
+                p2 = p1 + 1
+            else:
+                set_(write, get(p1))
+                write += 1
+                p1 = p2
+                p2 = p1 + 1
+        for i in range(write, len(index_seq)):
+            set_(i, 0)
+        return points
 
     @staticmethod
     def collapse_destructive(lst):
@@ -123,7 +172,7 @@ class Board:
         return points, output
 
     @classmethod
-    def left(cls):
+    def left_indices(cls):
         indices = []
         for row in range(cls.HEIGHT):
             row_indices = []
@@ -133,12 +182,12 @@ class Board:
         return indices
 
     @classmethod
-    def right(cls):
+    def right_indices(cls):
         # TODO: This is slow (copies list every time)
-        return [row[::-1] for row in cls.left()]
+        return [row[::-1] for row in cls.left_indices()]
 
     @classmethod
-    def down(cls):
+    def down_indices(cls):
         indices = []
         for col in range(cls.WIDTH):
             col_indices = []
@@ -148,20 +197,13 @@ class Board:
         return indices
 
     @classmethod
-    def up(cls):
-        return [col[::-1] for col in cls.left()]
+    def up_indices(cls):
+        return [col[::-1] for col in cls.down_indices()]
 
-    @classmethod
-    def seq(cls, int, move: Move):
-        indices = []
-        if move is Move.LEFT:
-            for row in range(cls.HEIGHT):
-                row_indices = []
-                for col in range(cls.WIDTH):
-                    row_indices.append(cls.linear_index(row, col))
-                indices.append(row_indices)
-        if move is Move.RIGHT:
-            pass
+    @property
+    def game_over(self):
+        # TODO:
+        return False
 
     @property
     def points(self):
