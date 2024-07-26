@@ -12,6 +12,7 @@ collapsable_lists = [
     [2, 0, 0, 2],
     [0, 0, 0, 0],
     [0, 0, 0, 1],
+    [2, 2, 0, 4],
 ]
 
 collapsable_lists_expected = [
@@ -24,6 +25,8 @@ collapsable_lists_expected = [
     [4, 0, 0, 0],
     [0, 0, 0, 0],
     [1, 0, 0, 0],
+    # TODO: Double-check that this is correct.
+    [0, 0, 4, 4],
 ]
 
 points_expected = [

@@ -77,6 +77,25 @@ class Board:
                 found_non_zero = True
         return found_zero and found_non_zero
 
+    def extract(self, axis: int, move: Move) -> list[int]:
+        """Extract a list from my grid corresponding to a move direction. The axis specifies
+        which row / column is extracted."""
+        output = []
+        match move:
+            case Move.LEFT:
+                for col in range(self.WIDTH):
+                    output.append(self.get_at(axis, col))
+            case Move.DOWN:
+                for row in range(self.HEIGHT):
+                    output.append(self.get_at(row, axis))
+            case Move.UP:
+                for row in reversed(range(self.HEIGHT)):
+                    output.append(self.get_at(row, axis))
+            case Move.RIGHT:
+                for col in reversed(range(self.WIDTH)):
+                    output.append(self.get_at(axis, col))
+        return output
+
     def get_by_index_seq(self, ptr, index_seq):
         return self.get_index(index_seq[ptr])
 
