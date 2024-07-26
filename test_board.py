@@ -60,13 +60,17 @@ def test_collapse_non_destructive():
         assert points == expected_points, f"Failed with input {input_list}."
 
 
+def test_collapse_():
+    lst = [4, 0, 0, 0]
+
+
 def test_collapse_down():
     grid = [2, 0, 0, 0, 0, 8, 0, 0, 0, 0, 4, 0, 0, 0, 0, 16]
     expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 4, 16]
     board = Board(grid)
-    assert board._grid == grid
+    assert board.grid == grid
     board.make_move(Move.DOWN)
-    assert grid == expected
+    assert board.grid == expected
 
 
 def test_collapse_up():
@@ -75,12 +79,14 @@ def test_collapse_up():
     board = Board(grid)
     assert board._grid == grid
     board.make_move(Move.UP)
-    assert grid == expected
+    assert board.grid == expected
 
 
 def test_collabsible():
     inputs = [
         [0, 0, 0, 0],
+        [2, 0, 0, 0],
+        [0, 0, 0, 2],
         [2, 0, 0, 2],
         [2, 0, 0, 4],
         [2, 2, 2, 2],
@@ -90,6 +96,8 @@ def test_collabsible():
     ]
     expected = [
         False,
+        False,
+        True,
         True,
         True,
         True,
@@ -99,4 +107,15 @@ def test_collabsible():
     ]
 
     for input, expected in zip(inputs, expected):
+        print(input)
         assert Board.collapsible(input) == expected
+
+
+def test_iscollapsible():
+    grid = [0 for _ in range(Board.SIZE)]
+    grid[3] = 2
+    board = Board(grid)
+    assert board.iscollapsible(Move.LEFT)
+    assert board.iscollapsible(Move.DOWN)
+    assert not board.iscollapsible(Move.UP)
+    assert not board.iscollapsible(Move.RIGHT)

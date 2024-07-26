@@ -52,12 +52,10 @@ class Board:
         return self.down_indices()
 
     def make_move(self, move: Move):
-        # FIXME: only allow the move to be made if it changes the board
         if move not in self.legal_moves:
             raise Exception("Attempting to make an illegal move.")
         for index_lst in self.get_index_lists_by_move(move):
             self._points += self.collapse_by_index_list(index_lst)
-        self.add_random_tile()
 
     @staticmethod
     def collapsible(lst: list[int]) -> bool:

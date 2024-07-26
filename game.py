@@ -14,6 +14,7 @@ class Game:
             parsed_move = self.parse_move(user_input)
             if parsed_move is not None and parsed_move in self.legal_moves:
                 self.make_move(parsed_move)
+                self._board.add_random_tile()
             else:
                 print("Incorrect entry.")
 
@@ -22,11 +23,10 @@ class Game:
         match user_input:
             case "h":
                 return Move.LEFT
-            # FIXME: Swapped these two.
             case "j":
-                return Move.UP
-            case "k":
                 return Move.DOWN
+            case "k":
+                return Move.UP
             case "l":
                 return Move.RIGHT
         return None
