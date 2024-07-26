@@ -12,13 +12,14 @@ class Board:
     # TODO: Figure out why I can't use WIDTH and HEIGHT in the list comprehension.
     INDICES: list[list[int]] = [[row * 4 + col for col in range(4)] for row in range(4)]
 
-    def __init__(self, grid=None, points=0) -> None:
+    def __init__(self, grid=None, points=0, has_won=False) -> None:
         """Initialize a Board instance, which stores the value of all tiles in a linearized grid."""
         self._grid = grid if grid is not None else self.make_grid()
         if grid is None:
             for _ in range(2):
                 self.add_random_tile()
         self._points = points
+        self._has_won = False
 
     @classmethod
     def make_grid(cls):
@@ -142,8 +143,11 @@ class Board:
             elif get(p2) == 0:
                 p2 += 1
             elif get(p1) == get(p2):
-                points += get(p1) + get(p2)
-                set_(write, get(p1) + get(p2))
+                merged_val = get(p1) + get(p2)
+                points += merged_val
+                set_(write, merged_val)
+                if merged_val == 2048:
+                    self._has_won = True
                 write += 1
                 p1 = p2 + 1
                 p2 = p1 + 1
@@ -265,6 +269,10 @@ class Board:
     def points(self):
         """Returns the current number of points accrued."""
         return self._points
+
+    @property
+    def has_won(self):
+        return self._has_won
 
     @classmethod
     def linear_index(cls, row, col):

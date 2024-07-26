@@ -1,5 +1,6 @@
 from board import Board
 from move import Move
+import os
 
 
 class Game:
@@ -7,20 +8,27 @@ class Game:
         self._board = board if board is not None else Board()
 
     def play(self):
+        # Clear the screen
+        def cls():
+            os.system("clear" if os.name == "posix" else "cls")
+
         while not self._board.game_over:
             print(f"Points: {self._board.points}")
             print(self._board)
-            user_input = input("Enter a move (hjkl) ").strip().lower()
+            user_input = input("Enter a move (hjkl) ")
+            if self._board._has_won:
+                print("Winner winner!")
             parsed_move = self.parse_move(user_input)
             if parsed_move is not None and parsed_move in self.legal_moves:
                 self.make_move(parsed_move)
                 self._board.add_random_tile()
+                cls()
             else:
                 print("Incorrect entry.")
 
     @staticmethod
     def parse_move(user_input):
-        match user_input:
+        match user_input.strip().lower():
             case "h":
                 return Move.LEFT
             case "j":

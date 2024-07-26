@@ -1,5 +1,6 @@
-from board import Board
 from copy import deepcopy
+
+from board import Board
 from move import Move
 
 collapsable_lists = [
@@ -60,10 +61,6 @@ def test_collapse_non_destructive():
         assert points == expected_points, f"Failed with input {input_list}."
 
 
-def test_collapse_():
-    lst = [4, 0, 0, 0]
-
-
 def test_collapse_down():
     grid = [2, 0, 0, 0, 0, 8, 0, 0, 0, 0, 4, 0, 0, 0, 0, 16]
     expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 4, 16]
@@ -119,3 +116,16 @@ def test_iscollapsible():
     assert board.iscollapsible(Move.DOWN)
     assert not board.iscollapsible(Move.UP)
     assert not board.iscollapsible(Move.RIGHT)
+
+
+def test_game_over():
+    inputs = [
+        [2 for _ in range(Board.SIZE)],
+        [2 * i for i in range(Board.SIZE)],
+        [2 * i if i < Board.WIDTH else 0 for i in range(Board.SIZE)],
+        [2 * (i % 2 + 1) for i in range(Board.SIZE)],
+    ]
+    expected = [False, True, False, False]
+    for input, expected in zip(inputs, expected):
+        board = Board(input)
+    assert board.game_over == expected, f"Failed on input: {input}"
