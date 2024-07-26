@@ -49,13 +49,33 @@ class Board:
             return self.up_indices()
         if move is Move.RIGHT:
             return self.right_indices()
-        if move is Move.DOWN:
-            return self.down_indices()
+        return self.down_indices()
 
     def make_move(self, move: Move):
+        # FIXME: only allow the move to be made if it changes the board
         for index_lst in self.get_index_lists_by_move(move):
             self._points += self.collapse_by_index_list(index_lst)
         self.add_random_tile()
+
+    @staticmethod
+    def collapsible(lst: list[int]) -> bool:
+        """Returns True iff a list of integers is collapsible. That is,
+        performing the collapse algorithm on it would result in a change.
+        We check for collapsibility by traversing the list, checking if
+        any subsequent entries are equal, and tracking if zero and non-zero
+        entries have been observed. This algorithm runs in O(n) time complexity.
+        """
+        found_zero = False
+        found_non_zero = False
+        for i in range(len(lst) - 1):
+            v1, v2 = lst[i], lst[i + 1]
+            if v1 != 0 and v1 == v2:
+                return True
+            if v1 == 0 or v2 == 0:
+                found_zero = True
+            if v1 != 0 or v2 != 0:
+                found_non_zero = True
+        return found_zero and found_non_zero
 
     def get_by_index_seq(self, ptr, index_seq):
         return self.get_index(index_seq[ptr])
