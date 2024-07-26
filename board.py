@@ -1,5 +1,7 @@
+from typing import NamedTuple
 from move import Move
 from random import choice, choices
+import math
 
 
 class Board:
@@ -8,13 +10,16 @@ class Board:
     SIZE: int = WIDTH * HEIGHT
     PROBABILITY_TWO: float = 0.9
     PROBABILITY_FOUR: float = 0.1
+    # TODO: Figure out why I can't use WIDTH and HEIGHT in the list comprehension.
+    INDICES: list[list[int]] = [[row * 4 + col for col in range(4)] for row in range(4)]
 
-    def __init__(self, grid=None) -> None:
+    def __init__(self, grid=None, points=0) -> None:
         """Initialize a Board instance, which stores the value of all tiles in a linearized grid."""
-        self._grid = grid if grid != None else self.make_grid()
-        if grid == None:
+        self._grid = grid if grid is not None else self.make_grid()
+        if grid is None:
             for _ in range(2):
                 self.add_random_tile()
+        self._points = points
 
     @classmethod
     def make_grid(cls):
@@ -29,11 +34,13 @@ class Board:
 
     def add_random_tile(self):
         """Add a random tile (weighted accordingly) to an empty position of the board."""
-        empty_indices = self.filter_indices(self._grid) 
+        empty_indices = self.filter_indices(self._grid)
         # Choose a random empty index
         index = choice(empty_indices)
-        # Choose whether to place a two or a four 
-        val = choices([2, 4], weights=[self.PROBABILITY_TWO, self.PROBABILITY_FOUR], k=1)[0]
+        # Choose whether to place a two or a four
+        val = choices(
+            [2, 4], weights=[self.PROBABILITY_TWO, self.PROBABILITY_FOUR], k=1
+        )[0]
         # Add the tile
         self.set_index(index, val)
 
@@ -49,7 +56,7 @@ class Board:
         mutating the original list. This merges consecutive non-overlapping
         pairs (grouped to the left) of non-zero integers. The sum of the pairs
         is written to the input list such that it overwrites the first value
-        of the pair. Non-paired, non-zero integers are shifted left to the 
+        of the pair. Non-paired, non-zero integers are shifted left to the
         first index where no overwrite has occured. After mutating the input
         list, the number of points gained by the collapse are returned, which
         equal the sum of all merged list entries (tiles in 2048).
@@ -115,15 +122,63 @@ class Board:
                 p2 = p1 + 1
         return points, output
 
+    @classmethod
+    def left(cls):
+        indices = []
+        for row in range(cls.HEIGHT):
+            row_indices = []
+            for col in range(cls.WIDTH):
+                row_indices.append(cls.linear_index(row, col))
+            indices.append(row_indices)
+        return indices
+
+    @classmethod
+    def right(cls):
+        # TODO: This is slow (copies list every time)
+        return [row[::-1] for row in cls.left()]
+
+    @classmethod
+    def down(cls):
+        indices = []
+        for col in range(cls.WIDTH):
+            col_indices = []
+            for row in range(cls.HEIGHT):
+                col_indices.append(cls.linear_index(row, col))
+            indices.append(col_indices)
+        return indices
+
+    @classmethod
+    def up(cls):
+        return [col[::-1] for col in cls.left()]
+
+    @classmethod
+    def seq(cls, int, move: Move):
+        indices = []
+        if move is Move.LEFT:
+            for row in range(cls.HEIGHT):
+                row_indices = []
+                for col in range(cls.WIDTH):
+                    row_indices.append(cls.linear_index(row, col))
+                indices.append(row_indices)
+        if move is Move.RIGHT:
+            pass
+
     @property
     def points(self):
-        """Calculates the current points by summing the total value of all tiles."""
-        return sum(self._grid)
+        """Returns the current number of points accrued."""
+        return self._points
 
     @classmethod
     def linear_index(cls, row, col):
         """Return a linearized index given a row and column index."""
-        return row * cls.WIDTH + col
+        return cls.INDICES[row][col]
+
+    @classmethod
+    def grid_index(cls, index):
+        """Return a grid index (row and col) from a linearized index."""
+        row = index % cls.WIDTH
+        col = index - (row * cls.WIDTH)
+        return GridIndex(row, col)
 
     def get_at(self, row, col):
         return self._grid[self.linear_index(row, col)]
@@ -135,8 +190,7 @@ class Board:
         return self._grid[index]
 
     def set_index(self, index, val):
-        self._grid[index] = val 
-
+        self._grid[index] = val
 
     @property
     def grid(self):
@@ -153,3 +207,8 @@ class Board:
                 board_str += " " * padding + str(val) + " "
             board_str += "\n"
         return board_str
+
+
+class GridIndex(NamedTuple):
+    row: int
+    col: int
