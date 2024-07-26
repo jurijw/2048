@@ -8,9 +8,12 @@ class Game:
 
     def play(self):
         while not self._board.game_over:
+            print(f"Points: {self._board.points}")
             print(self._board)
             user_input = input("Enter a move (hjkl) ").strip().lower()
-            self.make_move(self.parse_move(user_input))
+            parsed_move = self.parse_move(user_input)
+            if parsed_move is not None:
+                self.make_move(parsed_move)
 
     @staticmethod
     def parse_move(user_input):
@@ -24,7 +27,7 @@ class Game:
                 return Move.DOWN
             case "l":
                 return Move.RIGHT
-        return Move.RIGHT
+        return None
 
     def make_move(self, move: Move):
         self._board.make_move(move)
