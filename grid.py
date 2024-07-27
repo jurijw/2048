@@ -61,24 +61,64 @@ class Grid:
 
 
 class GridSlice:
-    def __init__(self, grid: Grid, select_rows: bool, axis: int) -> None:
+    def __init__(self, grid: Grid, select_rows: bool, axis: int, reverse=False) -> None:
         self._grid = grid
         self._select_rows = select_rows
         self._axis = axis
+        self._reverse = reverse
+
+    def get_grid_index(self, index: int):
+        """Convert an index, which is to be passed to a GridSlice view, to a GridIndex,
+        which is to be passed to a Grid directly."""
+        if self._reverse:
+            index = len(self) - index - 1
+        if self._select_rows:
+            return GridIndex(self._axis, index)
+        return GridIndex(index, self._axis)
 
     def __getitem__(self, index: int):
-        if self._select_rows:
-            return self._grid[GridIndex(self._axis, index)]
-        return self._grid[GridIndex(index, self._axis)]
+        return self._grid[self.get_grid_index(index)]
 
     def __setitem__(self, index: int, val):
-        if self._select_rows:
-            self._grid[GridIndex(self._axis, index)] = val
-        else:
-            self._grid[GridIndex(index, self._axis)] = val
+        self._grid[self.get_grid_index(index)] = val
+
+    def __len__(self):
+        return self._grid.width if self._select_rows else self._grid.height
+
+    def __eq__(self, other: object, /) -> bool:
+        if type(other) is list:
+            if len(self) != len(other):
+                return False
+            for i in range(len(self)):
+                if self[i] != other[i]:
+                    return False
+            return True
+        return super().__eq__(other)
+
+    #
+    # def __iter__(self):
+    #     return SliceIterator(self)
 
     def __str__(self) -> str:
         return "[" + ", ".join([str(val) for val in self]) + "]"
 
     def __repr__(self) -> str:
-        return f"{__class__.__name__} select_rows={self._select_rows} axis={self._axis}"
+        return f"{__class__.__name__}({self._grid.__class__.__name__} Object<{self._grid.__hash__()}>, select_rows={self._select_rows}, axis={self._axis})"
+
+
+class SliceIterator:
+    """Technically this class is not required since python implements #__iter__ automatically
+    for any class that implements #__getitem__ and #__len__, however pyright complains when using
+    the #zip method if __iter__ isn't specifically implemented."""
+
+    def __init__(self, slice: GridSlice) -> None:
+        self._slice = slice
+        self._index = 0
+
+    def __next__(self):
+        if self._index < len(self._slice):
+            result = self._slice[self._index]
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
