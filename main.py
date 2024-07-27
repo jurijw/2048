@@ -1,9 +1,8 @@
-from game import Game
+from cli import CLI
 
 
 def main():
-    print("Welcome to 2048.py!")
-    game = Game()
+    game = CLI()
     game.play()
 
 

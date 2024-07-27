@@ -9,10 +9,16 @@ class Game(ABC):
     def __init__(self, state: State | None = None) -> None:
         """An instance of a 2048 game. Can optionally be instantiated
         with a state instance to start from any configuration desired."""
-        self._state = state if state is not None else State()
+        if state is None:
+            state = State()
+        self._state = state
+        self._has_won = state.won
 
     @abstractmethod
-    def get_move() -> Moves:
+    def get_move(self) -> Moves:
+        """Return a move to be played next. This must be a valid move
+        given the current state of the game. This method must be implemented
+        by any subclasses."""
         pass
 
     def do_before_game(self) -> None:
@@ -39,11 +45,16 @@ class Game(ABC):
         """Executes once when the game is over."""
 
     def play(self):
+        """Play a game from the current state until the game ends.
+        Various methods are injected at differnt steps during the game,
+        which can be overwritten in subclasses to control how to display
+        and interact with the game."""
         self.do_before_game()
         while not self.game_over:
             if self.won:
                 if not self.prev_won:
                     self.do_on_win()
+                    self._prev_won = True
                 else:
                     self.do_after_win()
             self.do_before_every_move()

@@ -33,7 +33,7 @@ class State:
         else:
             self._grid: Grid = grid
         self._points = points
-        self._has_won = self._grid.max > self.WIN_THRESHOLD
+        self._won = self._grid.max > self.WIN_THRESHOLD
         self._views: dict[Moves, list[GridView]] = self.generate_views(self._grid)
 
     @staticmethod
@@ -179,6 +179,10 @@ class State:
         return points
 
     @property
+    def won(self):
+        return self._won
+
+    @property
     def game_over(self):
         """Returns true iff the game is over, which is the case when no
         more legal moves are available."""
@@ -196,7 +200,7 @@ class State:
 
     def __str__(self) -> str:
         """Return a readable representation of the state."""
-        return f"{self.points}\n{self.grid}"
+        return f"Points: {self.points}\n{self.grid}"
 
     def __repr__(self) -> str:
         return f"<{__class__.__name__}(grid=<{self.grid.__class__.__name__} Object {self.grid.__hash__()}>, points={self.points})"
