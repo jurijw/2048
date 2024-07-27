@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Move(Enum):
+class Moves(Enum):
     UP = 0
     RIGHT = 1
     DOWN = 2

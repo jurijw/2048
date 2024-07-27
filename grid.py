@@ -1,4 +1,5 @@
 from collections import namedtuple
+from typing import Callable
 
 GridIndex = namedtuple("GridIndex", ["row", "col"])
 
@@ -14,20 +15,33 @@ class Grid:
         self._width = width
         self._height = height
 
-    def __getitem__(self, idx: GridIndex):
-        return self._grid[self.linearized_index(idx)]
+    def __getitem__(self, idx: GridIndex | int):
+        if isinstance(idx, GridIndex):
+            return self._grid[self.linearized_index(idx)]
+        return self._grid[idx]
 
-    def __setitem__(self, idx: GridIndex, val: int):
-        self._grid[self.linearized_index(idx)] = val
+    def __setitem__(self, idx: GridIndex | int, val: int):
+        if isinstance(idx, GridIndex):
+            self._grid[self.linearized_index(idx)] = val
+        else:
+            self._grid[idx] = val
 
     def linearized_index(self, idx: GridIndex):
+        """Return a linearized index given a grid (row and column) index."""
         return self.width * idx.row + idx.col
 
-    def row(self, row_index):
-        return GridSlice(self, select_rows=True, axis=row_index)
+    def row(self, row_index, reverse=False):
+        """Return a view of the a row of the grid."""
+        return GridSlice(self, select_rows=True, axis=row_index, reverse=reverse)
 
-    def col(self, col_index):
-        return GridSlice(self, select_rows=False, axis=col_index)
+    def col(self, col_index, reverse=False):
+        """Return a view of the a column of the grid."""
+        return GridSlice(self, select_rows=False, axis=col_index, reverse=reverse)
+
+    def where(self, condition: Callable[[object], bool]):
+        """Return a list of all (linear) indices of a grid where a condition on the
+        entries of the grid holds."""
+        return [index for index, val in enumerate(self._grid) if condition(val)]
 
     @property
     def grid(self):
@@ -41,26 +55,33 @@ class Grid:
     def height(self):
         return self._height
 
-    @property
-    def max(self):
+    def __max__(self) -> int:
         """Return the largest entry in the grid."""
         return max(self._grid)
 
     def __str__(self) -> str:
         """Return a readable string representation of the baord, in which all values are displayed in a column aligned format."""
-        max_digits = len(str(self.max))
+        max_digits = len(str(max(self)))
         board_str: str = ""
         for row in range(self.height):
-            row_str = ""
             for col in range(self.width):
-                val = self[GridIndex(row, col)]
+                val = (
+                    self[GridIndex(row, col)] if self[GridIndex(row, col)] != 0 else "*"
+                )
                 padding = max_digits - len(str(val))
-                row_str += " " * padding + str(val) + " "
-            board_str += row_str.strip() + "\n"
-        return board_str.strip()
+                board_str += " " * padding + str(val)
+                if col != self.width:
+                    board_str += " "
+            if row != self.height - 1:
+                board_str += "\n"
+        return board_str
 
 
 class GridSlice:
+    """A view of a Grid instance that allows accessing and working with rows or columns
+    of the grid similarly to a regular list. Any method that operates on the view will
+    mutate the corrsponding entries of the grid instance assosciated with the view."""
+
     def __init__(self, grid: Grid, select_rows: bool, axis: int, reverse=False) -> None:
         self._grid = grid
         self._select_rows = select_rows
@@ -86,7 +107,7 @@ class GridSlice:
         return self._grid.width if self._select_rows else self._grid.height
 
     def __eq__(self, other: object, /) -> bool:
-        if type(other) is list:
+        if isinstance(other, list):
             if len(self) != len(other):
                 return False
             for i in range(len(self)):
@@ -95,30 +116,8 @@ class GridSlice:
             return True
         return super().__eq__(other)
 
-    #
-    # def __iter__(self):
-    #     return SliceIterator(self)
-
     def __str__(self) -> str:
         return "[" + ", ".join([str(val) for val in self]) + "]"
 
     def __repr__(self) -> str:
         return f"{__class__.__name__}({self._grid.__class__.__name__} Object<{self._grid.__hash__()}>, select_rows={self._select_rows}, axis={self._axis})"
-
-
-class SliceIterator:
-    """Technically this class is not required since python implements #__iter__ automatically
-    for any class that implements #__getitem__ and #__len__, however pyright complains when using
-    the #zip method if __iter__ isn't specifically implemented."""
-
-    def __init__(self, slice: GridSlice) -> None:
-        self._slice = slice
-        self._index = 0
-
-    def __next__(self):
-        if self._index < len(self._slice):
-            result = self._slice[self._index]
-            self._index += 1
-            return result
-        else:
-            raise StopIteration
