@@ -6,6 +6,13 @@ GridIndex = namedtuple("GridIndex", ["row", "col"])
 
 
 class Grid:
+    """
+    A 2d integer grid, backed by a single list, with support for row and column views.
+    The grid can be accessed either by a linearized index or via a GridIndex (row and
+    column tuple). The views allow operating on aribitrary rows or columns as though
+    they were a single list.
+    """
+
     DEFAULT_WIDTH: int = 4
     DEFAULT_HEIGHT: int = 4
 
@@ -22,27 +29,31 @@ class Grid:
         self._height = height
 
     def __getitem__(self, idx: GridIndex | int) -> int:
+        """Get an element of the grid, either by a grid index (row and column)
+        or by a linear index that directly accesses the underlying array."""
         if isinstance(idx, GridIndex):
             return self._arr[self.linearized_index(idx)]
         return self._arr[idx]
 
     def __setitem__(self, idx: GridIndex | int, val: int) -> None:
+        """Set an element of the grid, either by a grid index (row and column)
+        or by a linear index that directly accesses the underlying array."""
         if isinstance(idx, GridIndex):
             self._arr[self.linearized_index(idx)] = val
         else:
             self._arr[idx] = val
 
     def linearized_index(self, idx: GridIndex) -> int:
-        """Return a linearized index given a grid (row and column) index."""
+        """Return a linearized index given a grid index (row and column)."""
         return self.width * idx.row + idx.col
 
-    def row(self, row_index: int, reverse: bool = False) -> GridSlice:
-        """Return a view of the a row of the grid."""
-        return GridSlice(self, select_rows=True, axis=row_index, reverse=reverse)
+    def row(self, row_index: int, reverse: bool = False) -> GridView:
+        """Return a view of a row of the grid."""
+        return GridView(self, select_rows=True, axis=row_index, reverse=reverse)
 
-    def col(self, col_index: int, reverse: bool = False) -> GridSlice:
-        """Return a view of the a column of the grid."""
-        return GridSlice(self, select_rows=False, axis=col_index, reverse=reverse)
+    def col(self, col_index: int, reverse: bool = False) -> GridView:
+        """Return a view of a column of the grid."""
+        return GridView(self, select_rows=False, axis=col_index, reverse=reverse)
 
     def where(self, condition: Callable[[int], bool]) -> list[int]:
         """Return a list of all (linear) indices of a grid where a condition on the
@@ -50,15 +61,13 @@ class Grid:
         return [index for index, val in enumerate(self._arr) if condition(val)]
 
     @property
-    def arr(self) -> list[int]:
-        return self._arr
-
-    @property
     def width(self) -> int:
+        """The width of the grid."""
         return self._width
 
     @property
     def height(self) -> int:
+        """The height of the grid."""
         return self._height
 
     @property
@@ -83,22 +92,36 @@ class Grid:
                 board_str += "\n"
         return board_str
 
+    def __repr__(self) -> str:
+        return f"{__class__.__name__}(arr={self._arr}, width={self.width}, height={self.height}"
 
-class GridSlice:
-    """A view of a Grid instance that allows accessing and working with rows or columns
+
+class GridView:
+    """
+    A view of a Grid instance that allows accessing and working with rows or columns
     of the grid similarly to a regular list. Any method that operates on the view will
-    mutate the corrsponding entries of the grid instance assosciated with the view."""
+    mutate the corrsponding entries of the grid instance assosciated with the view.
+    """
 
     def __init__(
         self, grid: Grid, select_rows: bool, axis: int, reverse: bool = False
     ) -> None:
+        """
+        Initialize a grid view of any row or column of a grid.
+
+        Args:
+            select_rows: Specifies whether to choose rows or columns.
+            axis: The row index from top to bottom in the case of rows
+            or the column index from left to right in the case of columns.
+            reverse: Reverses the order of the view iff true.
+        """
         self._grid = grid
         self._select_rows = select_rows
         self._axis = axis
         self._reverse = reverse
 
     def get_grid_index(self, index: int) -> GridIndex:
-        """Convert an index, which is to be passed to a GridSlice view, to a GridIndex,
+        """Convert an index, which is to be passed to a GridView view, to a GridIndex,
         which is to be passed to a Grid directly."""
         if self._reverse:
             index = len(self) - index - 1
@@ -107,15 +130,19 @@ class GridSlice:
         return GridIndex(index, self._axis)
 
     def __getitem__(self, index: int) -> int:
+        """Get an element of the view, which refers to an element of a grid."""
         return self._grid[self.get_grid_index(index)]
 
     def __setitem__(self, index: int, val) -> None:
+        """Set an element of the view, which refers to an element of a grid."""
         self._grid[self.get_grid_index(index)] = val
 
     def __len__(self) -> int:
+        """The length of my view, equivalent to the length of the row or column I represent."""
         return self._grid.width if self._select_rows else self._grid.height
 
     def __eq__(self, other: object, /) -> bool:
+        """Add equality support for comparing a view to regular lists."""
         if isinstance(other, list):
             if len(self) != len(other):
                 return False
@@ -126,6 +153,7 @@ class GridSlice:
         return super().__eq__(other)
 
     def __str__(self) -> str:
+        """Return a readable representation of the contents of my view."""
         return "[" + ", ".join([str(val) for val in self]) + "]"
 
     def __repr__(self) -> str:
