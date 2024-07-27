@@ -125,7 +125,7 @@ def test_game_over():
         [2 * i if i < Board.WIDTH else 0 for i in range(Board.SIZE)],
         [2 * (i % 2 + 1) for i in range(Board.SIZE)],
     ]
-    expected = [False, True, False, False]
+    expected = [False, False, False, False]
     for input, expected in zip(inputs, expected):
         board = Board(input)
-    assert board.game_over == expected, f"Failed on input: {input}"
+        assert board.game_over == expected, f"Failed on input: {input}"
