@@ -1,15 +1,32 @@
 from moves import Moves
 from random import choice, choices
-from grid import Grid, GridSlice, GridIndex
+from grid import Grid, GridView, GridIndex
 
 
-class Board:
+class State:
+    """
+    A class describing the entire state of a game of 2048 at any instance.
+
+    Stores the grid as a regular 1D list under the hood and uses views to
+    operate on different rows and columns of the grid as though they were
+    regular lists. Implements the collapse algorithm to merge elements of
+    the grid according to the rules of 2048.
+    """
+
     PROBABILITY_TWO: float = 0.9
     PROBABILITY_FOUR: float = 0.1
     WIN_THRESHOLD: int = 2048
 
     def __init__(self, grid: Grid | None = None, points: int = 0) -> None:
-        """Initialize a Board instance, which stores the value of all tiles in a linearized grid."""
+        """
+        Initialize a Board instance, which stores the value of all tiles in a linearized grid.
+        By default creates a grid of zeros of dimensions specified in the grid class.
+
+        Args:
+            grid: An optional Grid instance which stores the configuration of tiles. By default,
+            a grid with only two tiles is created.
+            points: The number of accrued points. Defaults to zero.
+        """
         if grid is None:
             self._grid: Grid = Grid()
             self.add_tile(num_tiles=2)
@@ -17,10 +34,16 @@ class Board:
             self._grid: Grid = grid
         self._points = points
         self._has_won = self._grid.max > self.WIN_THRESHOLD
-        self._views: dict[Moves, list[GridSlice]] = self.generate_views(self._grid)
+        self._views: dict[Moves, list[GridView]] = self.generate_views(self._grid)
 
     @staticmethod
-    def generate_views(grid: Grid) -> dict[Moves, list[GridSlice]]:
+    def generate_views(grid: Grid) -> dict[Moves, list[GridView]]:
+        """Returns a dictionary of all possible views for the given grid, where the keys of the
+        keys of the dictionary are the moves corresponding to those views. Note that this should
+        probably not be used for larger grid sizes, since the returned views are all stored in
+        memory. This has the advantage that with smaller grid sizes we don't have to create view
+        instances after instantiating a state. For larger grid sizes, consider a lazy loading
+        approach. (Or just, you know, use numpy...)"""
         view_dict = {
             Moves.LEFT: [grid.row(row, reverse=False) for row in range(grid.height)],
             Moves.DOWN: [grid.col(col, reverse=True) for col in range(grid.width)],
@@ -29,11 +52,13 @@ class Board:
         }
         return view_dict
 
-    def views(self, move: Moves) -> list[GridSlice]:
+    def views(self, move: Moves) -> list[GridView]:
+        """Return a list of views corresponding to a move. For example, if call #views(Moves.DOWN)
+        we will get a list of views of all columns, where indexing reverse order."""
         return self._views[move]
 
     def add_tile(self, num_tiles=1):
-        """Add a random tile (either a 2 or a 4), weighted accordingly, to an empty position of the board."""
+        """Add random tile(s) (either a 2 or a 4), weighted accordingly, to an empty position of the board."""
         for _ in range(num_tiles):
             # Choose a random empty index
             index = choice(self.grid.where(lambda x: x == 0))
@@ -44,27 +69,36 @@ class Board:
             self[index] = val
 
     def __getitem__(self, idx: GridIndex | int):
+        """Get an element of my grid, either by a grid index (row and column)
+        or by a linear index that directly accesses the underlying array."""
         return self.grid[idx]
 
     def __setitem__(self, idx: GridIndex | int, val: int):
+        """Set an element of my grid, either by a grid index (row and column)
+        or by a linear index that directly accesses the underlying array."""
         self.grid[idx] = val
 
     def make_move(self, move: Moves):
+        """Apply a move to the state, collapsing the grid in the appropriate direction
+        and then adding a tile randomly to an empty position."""
         if move not in self.legal_moves:
             raise Exception("Attempting to make an illegal move.")
         self.collapse(move)
+        self.add_tile()
 
     def collapse(self, move: Moves):
+        """Collapse the grid in a given direction by applying the collapse algorithm to
+        all rows or columns of the grid in the correct direction."""
         for view in self.views(move):
             self._points += self.collapse_destructive(view)
 
     @staticmethod
-    def is_list_collapsible(lst: list[int] | GridSlice) -> bool:
-        """Returns True iff a list of integers is collapsible to the left. That is,
-        performing the collapse algorithm on it would result in a change.
+    def is_list_collapsible(lst: list[int] | GridView) -> bool:
+        """Returns True iff a list of integers (or a GridView) is collapsible to the left.
+        That is, performing the collapse algorithm on it would result in a change.
         We check for collapsibility by traversing the list, checking if
         any subsequent non-zero entries are equal or if any entry is preceeded by a
-        zero. This algorithm runs in O(n) time complexity.
+        zero. This algorithm runs in O(n) time complexity as it performs a single pass.
         """
         for i in range(len(lst) - 1):
             v1, v2 = lst[i], lst[i + 1]
@@ -75,12 +109,14 @@ class Board:
         return False
 
     def collapsible_by_move(self, move: Moves):
+        """Returns true iff the grid is collapsible in a given move direction."""
         for view in self.views(move):
             if self.is_list_collapsible(view):
                 return True
         return False
 
     def collapsible(self):
+        """Returns true iff the grid is collapsible in any move direction."""
         for move in Moves:
             if self.collapsible_by_move(move):
                 return True
@@ -88,14 +124,17 @@ class Board:
 
     @property
     def legal_moves(self):
+        """Return a list of all legal moves given the current game state."""
         return [move for move in Moves if self.collapsible_by_move(move)]
 
     @property
     def width(self):
+        """The width of my grid."""
         return self.grid.width
 
     @property
     def height(self):
+        """The height of my grid."""
         return self.grid.height
 
     @staticmethod
@@ -141,6 +180,8 @@ class Board:
 
     @property
     def game_over(self):
+        """Returns true iff the game is over, which is the case when no
+        more legal moves are available."""
         return len(self.legal_moves) == 0
 
     @property
@@ -149,15 +190,13 @@ class Board:
         return self._points
 
     @property
-    def has_won(self):
-        return self._has_won
-
-    @property
     def grid(self):
+        """The grid associated with my state."""
         return self._grid
 
     def __str__(self) -> str:
-        return str(self.grid)
+        """Return a readable representation of the state."""
+        return f"{self.points}\n{self.grid}"
 
     def __repr__(self) -> str:
-        return f"<{__class__.__name__}()>"
+        return f"<{__class__.__name__}(grid=<{self.grid.__class__.__name__} Object {self.grid.__hash__()}>, points={self.points})"
