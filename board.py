@@ -16,7 +16,7 @@ class Board:
         else:
             self._grid: Grid = grid
         self._points = points
-        self._has_won = False  # FIXME max(self._grid) > self.WIN_THRESHOLD
+        self._has_won = self._grid.max > self.WIN_THRESHOLD
         self._views: dict[Moves, list[GridSlice]] = self.generate_views(self._grid)
 
     @staticmethod
@@ -30,7 +30,7 @@ class Board:
         return view_dict
 
     def views(self, move: Moves) -> list[GridSlice]:
-        return self._views.get(move)
+        return self._views[move]
 
     def add_tile(self, num_tiles=1):
         """Add a random tile (either a 2 or a 4), weighted accordingly, to an empty position of the board."""
