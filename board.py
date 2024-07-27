@@ -12,13 +12,14 @@ class Board:
     # TODO: Figure out why I can't use WIDTH and HEIGHT in the list comprehension.
     INDICES: list[list[int]] = [[row * 4 + col for col in range(4)] for row in range(4)]
 
-    def __init__(self, grid=None, points=0) -> None:
+    def __init__(self, grid=None, points=0, has_won=False) -> None:
         """Initialize a Board instance, which stores the value of all tiles in a linearized grid."""
         self._grid = grid if grid is not None else self.make_grid()
         if grid is None:
             for _ in range(2):
                 self.add_random_tile()
         self._points = points
+        self._has_won = False
 
     @classmethod
     def make_grid(cls):
@@ -52,30 +53,48 @@ class Board:
         return self.down_indices()
 
     def make_move(self, move: Move):
-        # FIXME: only allow the move to be made if it changes the board
+        if move not in self.legal_moves:
+            raise Exception("Attempting to make an illegal move.")
         for index_lst in self.get_index_lists_by_move(move):
             self._points += self.collapse_by_index_list(index_lst)
-        self.add_random_tile()
 
     @staticmethod
     def collapsible(lst: list[int]) -> bool:
-        """Returns True iff a list of integers is collapsible. That is,
+        """Returns True iff a list of integers is collapsible to the left. That is,
         performing the collapse algorithm on it would result in a change.
         We check for collapsibility by traversing the list, checking if
         any subsequent entries are equal, and tracking if zero and non-zero
         entries have been observed. This algorithm runs in O(n) time complexity.
         """
-        found_zero = False
-        found_non_zero = False
         for i in range(len(lst) - 1):
             v1, v2 = lst[i], lst[i + 1]
+            if v1 == 0 and v2 != 0:
+                return True
             if v1 != 0 and v1 == v2:
                 return True
-            if v1 == 0 or v2 == 0:
-                found_zero = True
-            if v1 != 0 or v2 != 0:
-                found_non_zero = True
-        return found_zero and found_non_zero
+        return False
+
+    def iscollapsible(self, move: Move) -> bool:
+        for index_lst in self.get_index_lists_by_move(move):
+
+            def get(ptr: int):
+                return self.get_index(index_lst[ptr])
+
+            for i in range(len(index_lst) - 1):
+                v1, v2 = get(i), get(i + 1)
+                if v1 == 0 and v2 != 0:
+                    return True
+                if v1 != 0 and v1 == v2:
+                    return True
+        return False
+
+    @property
+    def legal_moves(self):
+        legal = []
+        for move in Move:
+            if self.iscollapsible(move):
+                legal.append(move)
+        return legal
 
     def extract(self, axis: int, move: Move) -> list[int]:
         """Extract a list from my grid corresponding to a move direction. The axis specifies
@@ -124,8 +143,11 @@ class Board:
             elif get(p2) == 0:
                 p2 += 1
             elif get(p1) == get(p2):
-                points += get(p1) + get(p2)
-                set_(write, get(p1) + get(p2))
+                merged_val = get(p1) + get(p2)
+                points += merged_val
+                set_(write, merged_val)
+                if merged_val == 2048:
+                    self._has_won = True
                 write += 1
                 p1 = p2 + 1
                 p2 = p1 + 1
@@ -226,7 +248,7 @@ class Board:
         return [row[::-1] for row in cls.left_indices()]
 
     @classmethod
-    def down_indices(cls):
+    def up_indices(cls):
         indices = []
         for col in range(cls.WIDTH):
             col_indices = []
@@ -236,18 +258,21 @@ class Board:
         return indices
 
     @classmethod
-    def up_indices(cls):
-        return [col[::-1] for col in cls.down_indices()]
+    def down_indices(cls):
+        return [col[::-1] for col in cls.up_indices()]
 
     @property
     def game_over(self):
-        # TODO:
-        return False
+        return len(self.legal_moves) == 0
 
     @property
     def points(self):
         """Returns the current number of points accrued."""
         return self._points
+
+    @property
+    def has_won(self):
+        return self._has_won
 
     @classmethod
     def linear_index(cls, row, col):
@@ -284,10 +309,14 @@ class Board:
         for row in range(self.HEIGHT):
             for col in range(self.WIDTH):
                 val = self.get_at(row, col)
+                symbol = "*" if val == 0 else str(val)
                 padding = max_digits - len(str(val))
-                board_str += " " * padding + str(val) + " "
+                board_str += " " * padding + symbol + " "
             board_str += "\n"
         return board_str
+
+    def __repr__(self) -> str:
+        return f"<{__class__.__name__}()>"
 
 
 class GridIndex(NamedTuple):
