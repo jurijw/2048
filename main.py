@@ -2,12 +2,14 @@ import argparse
 
 from cli_view import CLIView
 from controller import Controller
+from pygame_view import PygameView
+from random_agent import RandomAgent
 from state import State
 from user import User
 
 parser = argparse.ArgumentParser(description="Parse script arguments.")
 parser.add_argument(
-    "--mode",
+    "--view",
     type=str,
     default="cli",
     choices=["cli", "pygame", "flask"],
@@ -32,8 +34,23 @@ args = parser.parse_args()
 
 def main():
     state = State()
-    view = CLIView()
-    agent = User()
+    match args.view:
+        case "cli":
+            view = CLIView()
+        case "pygame":
+            view = PygameView()
+        case _:
+            raise ValueError("View not available.")
+
+    match args.agent:
+        case "user":
+            agent = User()
+        case "random":
+            agent = RandomAgent()
+        case "evolution":
+            raise NotImplementedError()
+        case _:
+            raise ValueError("Agent not available.")
     controller = Controller(state, view, agent)
     controller.play()
 
