@@ -6,8 +6,7 @@ from view import View
 
 
 class CLIView(View):
-    @staticmethod
-    def display(state: State):
+    def display(self, state: State) -> None:
         clear()
         print("Welcome to 2048.py!")
         print(add_padding(str(state), left=5, above=2, below=2))

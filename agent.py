@@ -9,7 +9,6 @@ class Agent(ABC):
     strategy and with information of a game state, what move to make next."""
 
     @abstractmethod
-    @staticmethod
-    def get_move(state: State) -> Moves:
+    def get_move(self, state: State) -> Moves:
         """Given a game state, return a legal move by some strategy."""
         pass

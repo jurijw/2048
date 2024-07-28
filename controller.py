@@ -10,6 +10,7 @@ class Controller:
         self._agent = agent
 
     def play(self) -> None:
-        self._view.display(self._state)
-        move = self._agent.get_move(self._state)
-        self._state.make_move(move)
+        while not self._state.game_over:
+            self._view.display(self._state)
+            move = self._agent.get_move(self._state)
+            self._state.make_move(move)

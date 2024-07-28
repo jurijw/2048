@@ -1,5 +1,9 @@
-from cli import CLI
 import argparse
+
+from cli_view import CLIView
+from controller import Controller
+from state import State
+from user import User
 
 parser = argparse.ArgumentParser(description="Parse script arguments.")
 parser.add_argument(
@@ -27,8 +31,11 @@ args = parser.parse_args()
 
 
 def main():
-    game = CLI()
-    game.play()
+    state = State()
+    view = CLIView()
+    agent = User()
+    controller = Controller(state, view, agent)
+    controller.play()
 
 
 if __name__ == "__main__":
