@@ -1,9 +1,10 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from state import State
+from subject import Subject
 
 
-class View(ABC):
+class View(Subject):
     @abstractmethod
     def display(self, state: State) -> None:
         """Take a state and display it in some form."""
