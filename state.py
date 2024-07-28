@@ -1,6 +1,7 @@
 from moves import Moves
 from random import choice, choices
-from grid import Grid, GridView, GridIndex
+from grid import Grid, GridView
+from grid_index import GridIndex
 
 
 class State:

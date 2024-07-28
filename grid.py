@@ -1,8 +1,7 @@
 from __future__ import annotations
-from collections import namedtuple
 from typing import Callable, overload
 
-GridIndex = namedtuple("GridIndex", ["row", "col"])
+from grid_index import GridIndex
 
 
 class Grid:
