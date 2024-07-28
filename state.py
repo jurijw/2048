@@ -13,6 +13,9 @@ class State:
     the grid according to the rules of 2048.
     """
 
+    WIDTH = 4
+    HEIGHT = 4
+    SIZE = WIDTH * HEIGHT
     PROBABILITY_TWO: float = 0.9
     PROBABILITY_FOUR: float = 0.1
     WIN_THRESHOLD: int = 2048
@@ -47,7 +50,7 @@ class State:
         view_dict = {
             Moves.LEFT: [grid.row(row, reverse=False) for row in range(grid.height)],
             Moves.DOWN: [grid.col(col, reverse=True) for col in range(grid.width)],
-            Moves.UP: [grid.row(col, reverse=False) for col in range(grid.width)],
+            Moves.UP: [grid.col(col, reverse=False) for col in range(grid.width)],
             Moves.RIGHT: [grid.row(row, reverse=True) for row in range(grid.height)],
         }
         return view_dict
@@ -78,13 +81,14 @@ class State:
         or by a linear index that directly accesses the underlying array."""
         self.grid[idx] = val
 
-    def make_move(self, move: Moves):
+    def make_move(self, move: Moves, add_tile: bool = True):
         """Apply a move to the state, collapsing the grid in the appropriate direction
-        and then adding a tile randomly to an empty position."""
+        and then adding a tile randomly to an empty position if ADD_TILE is true."""
         if move not in self.legal_moves:
             raise Exception("Attempting to make an illegal move.")
         self.collapse(move)
-        self.add_tile()
+        if add_tile:
+            self.add_tile()
 
     def collapse(self, move: Moves):
         """Collapse the grid in a given direction by applying the collapse algorithm to
@@ -100,6 +104,8 @@ class State:
         any subsequent non-zero entries are equal or if any entry is preceeded by a
         zero. This algorithm runs in O(n) time complexity as it performs a single pass.
         """
+        if len(lst) < 2:
+            return False
         for i in range(len(lst) - 1):
             v1, v2 = lst[i], lst[i + 1]
             if v1 == 0 and v2 != 0:
@@ -203,4 +209,4 @@ class State:
         return f"Points: {self.points}\n{self.grid}"
 
     def __repr__(self) -> str:
-        return f"<{__class__.__name__}(grid=<{self.grid.__class__.__name__} Object {self.grid.__hash__()}>, points={self.points})"
+        return f"<{__class__.__name__}(grid=<{self.grid.__class__.__name__} Object>, points={self.points})"

@@ -71,9 +71,24 @@ class Grid:
         return self._height
 
     @property
+    def size(self) -> int:
+        """Return the number of entries in my grid."""
+        return len(self._arr)
+
+    @property
     def max(self) -> int:
         """Return the largest entry in the grid."""
         return max(self._arr)
+
+    def __eq__(self, other: object) -> bool:
+        """Returns true if this grid's underlying list equals that of
+        OTHER, element-wise."""
+        if isinstance(other, Grid):
+            return self._arr == other._arr
+        elif isinstance(other, list):
+            return self._arr == other
+        else:
+            return super().__eq__(other)
 
     def __str__(self) -> str:
         """Return a readable string representation of the baord, in which all values are displayed in a column aligned format."""
@@ -86,14 +101,14 @@ class Grid:
                 )
                 padding = max_digits - len(str(val))
                 board_str += " " * padding + str(val)
-                if col != self.width:
+                if col != self.width - 1:
                     board_str += " "
             if row != self.height - 1:
                 board_str += "\n"
         return board_str
 
     def __repr__(self) -> str:
-        return f"{__class__.__name__}(arr={self._arr}, width={self.width}, height={self.height}"
+        return f"{__class__.__name__}(arr={self._arr}, width={self.width}, height={self.height})"
 
 
 class GridView:
@@ -157,4 +172,4 @@ class GridView:
         return "[" + ", ".join([str(val) for val in self]) + "]"
 
     def __repr__(self) -> str:
-        return f"{__class__.__name__}({self._grid.__class__.__name__} Object<{self._grid.__hash__()}>, select_rows={self._select_rows}, axis={self._axis})"
+        return f"{__class__.__name__}(grid=<{self._grid.__class__.__name__} Object>, select_rows={self._select_rows}, axis={self._axis}, reverse={self._reverse})"

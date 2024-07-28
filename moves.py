@@ -1,11 +1,11 @@
-from enum import Enum
+from enum import Enum, auto
 
 
 class Moves(Enum):
-    UP = 0
-    RIGHT = 1
-    DOWN = 2
-    LEFT = 3
+    LEFT = auto()
+    DOWN = auto()
+    UP = auto()
+    RIGHT = auto()
 
     def __str__(self):
         return self.name
