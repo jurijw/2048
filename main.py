@@ -1,10 +1,10 @@
-from game import Game
+from cli import CLI
 
 
 def main():
-    print("Welcome to 2048.py!")
-    game = Game()
+    game = CLI()
     game.play()
+
 
 if __name__ == "__main__":
     main()

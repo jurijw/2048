@@ -1,50 +1,97 @@
-from board import Board
-from move import Move
-import os
+from state import State
+from moves import Moves
+from abc import ABC, abstractmethod
 
 
-class Game:
-    def __init__(self, board=None) -> None:
-        self._board = board if board is not None else Board()
+class Game(ABC):
+    """A class for playing and interacting with a game of 2048."""
+
+    def __init__(self, state: State | None = None) -> None:
+        """An instance of a 2048 game. Can optionally be instantiated
+        with a state instance to start from any configuration desired."""
+        if state is None:
+            state = State()
+        self._state = state
+        self._has_won = state.won
+
+    @abstractmethod
+    def get_move(self) -> Moves:
+        """Return a move to be played next. This must be a valid move
+        given the current state of the game. This method must be implemented
+        by any subclasses."""
+        pass
+
+    def do_before_game(self) -> None:
+        """Excecutes once before the game starts."""
+        pass
+
+    def do_before_every_move(self) -> None:
+        """Executes once before every move."""
+        pass
+
+    def do_after_every_move(self) -> None:
+        """Executes once after every move."""
+        pass
+
+    def do_on_win(self) -> None:
+        """Executes once when the winning state is achieved."""
+        pass
+
+    def do_after_win(self) -> None:
+        """Executes once every turn after the winning state is achieved."""
+        pass
+
+    def do_on_game_over(self) -> None:
+        """Executes once when the game is over."""
 
     def play(self):
-        # Clear the screen
-        def cls():
-            os.system("clear" if os.name == "posix" else "cls")
+        """Play a game from the current state until the game ends.
+        Various methods are injected at differnt steps during the game,
+        which can be overwritten in subclasses to control how to display
+        and interact with the game."""
+        self.do_before_game()
+        while not self.game_over:
+            if self.won:
+                if not self.prev_won:
+                    self.do_on_win()
+                    self._prev_won = True
+                else:
+                    self.do_after_win()
+            self.do_before_every_move()
+            move = self.get_move()
+            self.make_move(move)
+            self.do_after_every_move()
+        self.do_on_game_over()
 
-        while not self._board.game_over:
-            print(f"Points: {self._board.points}")
-            print(self._board)
-            user_input = input("Enter a move (hjkl) ")
-            if self._board._has_won:
-                print("Winner winner!")
-            parsed_move = self.parse_move(user_input)
-            if parsed_move is not None and parsed_move in self.legal_moves:
-                self.make_move(parsed_move)
-                self._board.add_random_tile()
-                cls()
-            else:
-                print("Incorrect entry.")
+    def make_move(self, move: Moves):
+        """Apply a move to my state."""
+        self._state.make_move(move)
 
-    @staticmethod
-    def parse_move(user_input):
-        match user_input.strip().lower():
-            case "h":
-                return Move.LEFT
-            case "j":
-                return Move.DOWN
-            case "k":
-                return Move.UP
-            case "l":
-                return Move.RIGHT
-        return None
-
-    def make_move(self, move: Move):
-        self._board.make_move(move)
+    @property
+    def state(self):
+        """Return the state associated with this game."""
+        return self._state
 
     @property
     def legal_moves(self):
-        return self._board.legal_moves
+        """Return a list of legal moves for the current game state."""
+        return self._state.legal_moves
+
+    @property
+    def game_over(self):
+        """Returns true iff the game is over."""
+        return self._state.game_over
+
+    @property
+    def won(self):
+        """Returns true iff the game has been won. Note that in 2048
+        this doesn't mean the game ends."""
+        return self._state.won
+
+    @property
+    def prev_won(self):
+        """Returns true iff the game reached a winning state before this turn."""
+        return self._prev_won
 
     def __str__(self) -> str:
-        return str(self._board)
+        return str(self._state)
