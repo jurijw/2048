@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import namedtuple
-from typing import Callable
+from typing import Callable, overload
 
 GridIndex = namedtuple("GridIndex", ["row", "col"])
 
@@ -28,12 +28,34 @@ class Grid:
         self._width = width
         self._height = height
 
+    @overload
+    def __getitem__(self, idx: int) -> int:
+        """Get an element of the grid by a linear index that directly accesses
+        the underlying array."""
+        self.__getitem__(idx)
+
+    @overload
+    def __getitem__(self, idx: GridIndex) -> int:
+        """Get an element of the grid by a grid index (row and column)"""
+        self.__getitem__(self.linearized_index(idx))
+
     def __getitem__(self, idx: GridIndex | int) -> int:
         """Get an element of the grid, either by a grid index (row and column)
         or by a linear index that directly accesses the underlying array."""
         if isinstance(idx, GridIndex):
             return self._arr[self.linearized_index(idx)]
         return self._arr[idx]
+
+    @overload
+    def __setitem__(self, idx: int, val: int):
+        """Set an element of the grid by a linear index that directly
+        accesses the underlying array."""
+        self.__setitem__(idx, val)
+
+    @overload
+    def __setitem__(self, idx: GridIndex, val: int):
+        """Set an element of the grid by a grid index (row and column)."""
+        self.__setitem__(idx, val)
 
     def __setitem__(self, idx: GridIndex | int, val: int) -> None:
         """Set an element of the grid, either by a grid index (row and column)
@@ -47,13 +69,9 @@ class Grid:
         """Return a linearized index given a grid index (row and column)."""
         return self.width * idx.row + idx.col
 
-    def row(self, row_index: int, reverse: bool = False) -> GridView:
-        """Return a view of a row of the grid."""
-        return GridView(self, select_rows=True, axis=row_index, reverse=reverse)
-
-    def col(self, col_index: int, reverse: bool = False) -> GridView:
-        """Return a view of a column of the grid."""
-        return GridView(self, select_rows=False, axis=col_index, reverse=reverse)
+    def view(self, select_rows: bool, axis: int, reverse: bool) -> GridView:
+        """Return a view of row or column of the grid."""
+        return GridView(self, select_rows=select_rows, axis=axis, reverse=reverse)
 
     def where(self, condition: Callable[[int], bool]) -> list[int]:
         """Return a list of all (linear) indices of a grid where a condition on the

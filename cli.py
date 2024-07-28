@@ -1,4 +1,3 @@
-from typing import Callable
 from game import Game
 from moves import Moves
 from state import State

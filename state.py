@@ -47,11 +47,24 @@ class State:
         memory. This has the advantage that with smaller grid sizes we don't have to create view
         instances after instantiating a state. For larger grid sizes, consider a lazy loading
         approach. (Or just, you know, use numpy...)"""
+        kwargs_dict = {
+            Moves.LEFT: {"select_rows": True, "reverse": False},
+            Moves.DOWN: {"select_rows": False, "reverse": True},
+            Moves.UP: {"select_rows": False, "reverse": False},
+            Moves.RIGHT: {"select_rows": True, "reverse": True},
+        }
+        num_axes_dict = {
+            Moves.LEFT: grid.height,
+            Moves.DOWN: grid.width,
+            Moves.UP: grid.width,
+            Moves.RIGHT: grid.height,
+        }
         view_dict = {
-            Moves.LEFT: [grid.row(row, reverse=False) for row in range(grid.height)],
-            Moves.DOWN: [grid.col(col, reverse=True) for col in range(grid.width)],
-            Moves.UP: [grid.col(col, reverse=False) for col in range(grid.width)],
-            Moves.RIGHT: [grid.row(row, reverse=True) for row in range(grid.height)],
+            move: [
+                grid.view(axis=axis, **kwargs_dict[move])
+                for axis in range(num_axes_dict[move])
+            ]
+            for move in Moves
         }
         return view_dict
 

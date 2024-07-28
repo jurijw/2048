@@ -1,4 +1,3 @@
-import pytest
 from grid import Grid, GridIndex, GridView
 
 
