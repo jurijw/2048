@@ -1,6 +1,7 @@
 import os
 
 
+from event import KeyPressEvent
 from state import State
 from view import View
 
@@ -8,8 +9,12 @@ from view import View
 class CLIView(View):
     def display(self, state: State) -> None:
         clear()
-        print("Welcome to 2048.py!")
-        print(add_padding(str(state), left=5, above=2, below=2))
+        while not state.game_over:
+            print("Welcome to 2048.py!")
+            print(add_padding(str(state), left=5, above=2, below=2))
+            user_input = input("Enter a move (hjkl): ")
+            self.notify(KeyPressEvent(user_input))
+            clear()
 
 
 def clear() -> None:
