@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
-from model import State
-from subject import Subject
+from .model import State
+from .subject import Subject
 
 
 class View(Subject):

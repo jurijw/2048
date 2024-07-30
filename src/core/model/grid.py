@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Callable, overload
 
-from grid_index import GridIndex
+from .grid_index import GridIndex
 
 
 class Grid:

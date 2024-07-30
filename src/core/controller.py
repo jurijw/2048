@@ -1,15 +1,15 @@
-from agents import Agent
-from event import KeyPressEvent
-from model import Moves, State
-from observer import Observer
-from view import View
+from .agent import Agent
+from .event import KeyPressEvent
+from .model import Moves, State
+from .observer import Observer
+from .view import View
 
 
 class Controller(Observer):
     def __init__(self, state: State, view: View, agent: Agent) -> None:
         self._state = state
         self._view = view
-        view.attatch(self)
+        view.attach(self)
         self._agent = agent
 
     def play(self) -> None:

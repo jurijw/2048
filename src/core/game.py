@@ -1,4 +1,4 @@
-from model import Moves, State
+from .model import Moves, State
 from abc import ABC, abstractmethod
 
 
@@ -12,6 +12,7 @@ class Game(ABC):
             state = State()
         self._state = state
         self._has_won = state.won
+        self._prev_won = state.won
 
     @abstractmethod
     def get_move(self) -> Moves:

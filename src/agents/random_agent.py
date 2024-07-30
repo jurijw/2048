@@ -1,7 +1,7 @@
 from random import choice
 from time import sleep
 
-from agent import Agent
+from core.agent import Agent
 from core import Moves, State
 
 
