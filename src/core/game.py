@@ -1,5 +1,4 @@
-from state import State
-from moves import Moves
+from model import Moves, State
 from abc import ABC, abstractmethod
 
 

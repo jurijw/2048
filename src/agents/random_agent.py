@@ -2,8 +2,7 @@ from random import choice
 from time import sleep
 
 from agent import Agent
-from moves import Moves
-from model.state import State
+from core import Moves, State
 
 
 class RandomAgent(Agent):

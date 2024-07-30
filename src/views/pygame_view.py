@@ -1,11 +1,7 @@
-from collections import namedtuple
-
 import pygame
 
-from event import KeyPressEvent
-from grid_index import GridIndex
-from state import State
-from view import View
+from core import State, View, GridIndex
+from core.event import KeyPressEvent
 
 
 class PygameView(View):
@@ -19,37 +15,45 @@ class PygameView(View):
         self._screen = pygame.display.set_mode(self._size)
         self._font = pygame.font.SysFont("Times New Roman", 65, bold=True)
 
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def height(self):
+        return self._height
+
     def display(self, state: State) -> None:
         while self._running:
-            print(state)
+            self.render(state)
             for event in pygame.event.get():
                 if event.type == pygame.quit:
                     self._running = False
-
                 if event.type == pygame.KEYDOWN:
                     self.notify(KeyPressEvent(event.unicode))
 
-            self._screen.fill("white")
-            self.render_grid(state)
-            self.render_entries(state)
-            pygame.display.flip()
+    def render(self, state: State):
+        self._screen.fill("white")
+        self.render_grid(state)
+        self.render_entries(state)
+        pygame.display.flip()
 
     def render_grid(self, state: State):
         for row in range(state.height):
-            start = (0, row * self._size.height / state.height)
-            end = (self._size.width, row * self._size.height / state.height)
+            start = (0, row * self.height / state.height)
+            end = (self.width, row * self.height / state.height)
             pygame.draw.line(self._screen, "black", start, end, width=5)
 
         for col in range(state.width):
-            start = (col * self._size.width / state.width, 0)
-            end = (col * self._size.width / state.width, self._size.height)
+            start = (col * self.width / state.width, 0)
+            end = (col * self.width / state.width, self.height)
             pygame.draw.line(self._screen, "black", start, end, width=5)
 
     def render_entries(self, state: State):
-        dx, dy = self._width // state.width, self._height // state.height
+        dx, dy = self.width // state.width, self.height // state.height
         lattice_points = [
-            [(x, y) for x in range(0, self._width, dx)]
-            for y in range(0, self._height, dy)
+            [(x, y) for x in range(0, self.width, dx)]
+            for y in range(0, self.height, dy)
         ]
         for row in range(state.width):
             for col in range(state.height):
@@ -59,5 +63,15 @@ class PygameView(View):
                 y += dy // 2
                 val = state[GridIndex(row, col)]
                 if val != 0:
-                    text_surface = self._font.render(str(val), True, "orange")
+                    text_surface = self._font.render(str(val), True, "black")
                     self._screen.blit(text_surface, (x, y))
+
+
+class Block:
+    def __init__(self, row: int, col: int, val: int) -> None:
+        self._row = row
+        self._col = col
+        self._val = val
+
+    def render(self, state: State):
+        pass

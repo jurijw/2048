@@ -1,10 +1,8 @@
 import argparse
 
-from views.cli import CLIView
-from controller import Controller
-from views.pygame import PygameView
-from agents.random import RandomAgent
-from model.state import State
+from agents import RandomAgent
+from core import State, Controller
+from views import CLIView, PygameView
 
 parser = argparse.ArgumentParser(description="Parse script arguments.")
 parser.add_argument(

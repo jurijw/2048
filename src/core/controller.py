@@ -1,9 +1,8 @@
-from agents.agent import Agent
+from agents import Agent
 from event import KeyPressEvent
-from moves import Moves
+from model import Moves, State
 from observer import Observer
-from model.state import State
-from views.view import View
+from view import View
 
 
 class Controller(Observer):

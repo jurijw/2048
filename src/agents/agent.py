@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
-from moves import Moves
-from model.state import State
+from core import Moves, State
 
 
 class Agent(ABC):

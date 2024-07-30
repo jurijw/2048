@@ -1,9 +1,8 @@
 import os
 
 
-from event import KeyPressEvent
-from state import State
-from view import View
+from core import State, View
+from core.event import KeyPressEvent
 
 
 class CLIView(View):

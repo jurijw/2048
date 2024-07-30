@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from model.state import State
+from model import State
 from subject import Subject
 
 
